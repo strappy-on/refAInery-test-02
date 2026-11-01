@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "app_name": "FizzBuzz",
+  "version": {
+    "source": "VERSION",
+    "format": "text"
+  },
+  "targets": [
+    {
+      "name": "macOS",
+      "workdir": ".",
+      "build": [
+        {
+          "exec": "make",
+          "args": [
+            "macOS-release"
+          ]
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "build/macOS/release/FizzBuzz/FizzBuzz.zip",
+          "asset_name": "FizzBuzz-{version}-macOS.zip"
+        },
+        {
+          "path": "build/macOS/release/libmodel/model.zip",
+          "asset_name": "FizzBuzz-{version}-macOS-library.zip"
+        }
+      ]
+    },
+    {
+      "name": "iOS",
+      "workdir": ".",
+      "build": [
+        {
+          "exec": "make",
+          "args": [
+            "iOS-release"
+          ]
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "build/iOS/release/FizzBuzz/FizzBuzz.zip",
+          "asset_name": "FizzBuzz-{version}-iOS.zip"
+        },
+        {
+          "path": "build/iOS/release/libmodel/model.zip",
+          "asset_name": "FizzBuzz-{version}-iOS-library.zip"
+        }
+      ]
+    }
+  ]
+}

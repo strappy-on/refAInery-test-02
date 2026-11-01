@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  portable-tests:
+    name: Portable tests (no SDK required)
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/jeffreybergier/altivec-intelligence:latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Run portable tests
+        run: make test-host
+
+      - name: Check project metadata
+        run: make check-project
+
+  cross-build:
+    name: Cross-build and validate (macOS + iOS)
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/jeffreybergier/altivec-intelligence:latest
+    env:
+      # SDK archives must be available. In this environment, the container
+      # image has /sdk-archives mounted. In GitHub Actions, the SDK archives
+      # must be provided — either baked into the image or supplied via a
+      # GitHub secret / artifact. This will fail if the SDKs are not available.
+      ALTIVEC_SDK_ARCHIVE_DIR: /sdk-archives
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install SDKs
+        run: altivec-sdk install
+
+      - name: Build macOS release (quad-fat)
+        run: make macOS-release
+
+      - name: Build iOS release (FAT)
+        run: make iOS-release
+
+      - name: Build macOS debug
+        run: make macOS-debug
+
+      - name: Build iOS debug
+        run: make iOS-debug
+
+      - name: Static analysis (macOS)
+        run: make macOS-analyze
+
+      - name: Static analysis (iOS)
+        run: make iOS-analyze
+
+      - name: Validate macOS packages
+        run: make macOS-validate-package
+
+      - name: Validate iOS packages
+        run: make iOS-validate-package
+
+      - name: Inspect artifacts
+        run: python3 tools/check-artifacts.py
+
+      - name: Verify macOS quad-fat binary
+        run: |
+          lipo -info build/macOS/release/FizzBuzz/FizzBuzz
+          lipo -info build/macOS/release/FizzBuzz/FizzBuzz | grep -q "ppc i386 x86_64 arm64"
+
+      - name: Verify iOS FAT binary
+        run: |
+          lipo -info build/iOS/release/FizzBuzz/FizzBuzz
+          lipo -info build/iOS/release/FizzBuzz/FizzBuzz | grep -q "armv7 arm64"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: FizzBuzz
+          path: |
+            build/macOS/release/FizzBuzz/FizzBuzz.zip
+            build/iOS/release/FizzBuzz/FizzBuzz.zip
+          if-no-files-found: error

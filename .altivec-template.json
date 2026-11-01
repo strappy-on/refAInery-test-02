@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "template_version": "1.0.0",
+  "template": "cli-library",
+  "name": "FizzBuzz",
+  "bundle_id": "com.example.fizzbuzz",
+  "platforms": [
+    "macOS",
+    "iOS"
+  ],
+  "mac_archs": "full",
+  "ios_package": "zip",
+  "backend": "container",
+  "support_profile": "legacy-phone"
+}
